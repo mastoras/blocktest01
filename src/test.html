@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="el">
+  <head>
+	<!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <title>Μεσεγγύηση</title>
+  </head>
+  <body style = "margin: 2em;">
+
+    <h1>DApp μεσάζοντα εγγυητή.</h1>
+
+    <h2>Αποστολή χρημάτων μέσω συμβολαίου:</h2>
+    <form id="contract-form">
+        <div class="form-group">
+          <label for="Receiver Address">Διεύθυνση παραλήπτη χρημάτων (ETH)</label>
+          <input value="0xb7254A734ec6B3B1C56593D095829BfA0d8ED078" type="text" class="form-control" id="toAddress" aria-describedby="toAddressHelp" placeholder="Enter the receipient address" required="true">
+          <small id="toAddressHelp" class="form-text text-muted">Εισάγετε την διεύθυνση (δημόσιο κλειδί) του πορτοφολιού του παραλήπτη.</small>
+        </div>
+          <div class="form-group">
+            <label for="Amount">Ποσό</label>
+            <input value="2" type="text" class="form-control" id="amount" aria-describedby="amountHelp" placeholder="Amount to send in ETH" required="true">
+            <small id="amountHelp" class="form-text text-muted">Πόσα χρήματα θα στείλετε σε Ether.</small>
+          </div>
+      <button type="submit" class="btn btn-primary">Αποστολή</button>
+      <div id="deposit-result">Πατώντας το κουμπί "Αποστολή" τα χρήματά σας θα πιστωθούν στο συμβόλαιο.</div>
+    </form>
+    <hr>
+    <h2>Υπόλοιπο:</h2>
+    <form id="get-balance-form">
+      <button type="submit" class="btn btn-primary">Δείτε το υπόλοιπο</button>
+      <div id="the-balance">Πατήστε το κουμπί για να δείτε το ποσό που είναι αποταμιευμένο στο συμβόλαιο.</div>
+    </form>
+    <h2>Εγγυητής:</h2>
+    <form id="approver-form">
+      <button type="submit" class="btn btn-primary">Δείτε τον εγγυητή</button>
+      <div id="approver-display">Πατήστε το κουμπί για να δείτε τη διεύθυνση του Εγγυητή.</div>
+    </form>
+
+    <form id="approve-form">
+      <button type="submit" class="btn btn-primary">Επιβεβαίωση συναλλαγής</button>
+      <div id="approval-display">Αν είστε ο εγγυητής, πατήστε το κουμπί για να εγκρίνετε τη συναλλαγή και τα χρήματα να μεταφερθούν στον παραλήπτη.</div>
+    </form>
+
+	<script src="web3.min.js"></script>
+    <script src="contractAbi.js"></script>
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS --><!--
+    <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  -->
+	<script>
+      window.addEventListener('load', async () => { 
+        if (window.ethereum) {
+          window.web3 = new Web3(ethereum);
+          try {
+            await ethereum.enable();
+            web3.eth.sendTransaction({/* ... */});
+          } catch (error) {
+            // User denied account access...
+          }
+        }
+        else {
+          console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+        }
+      });
+      web3 = new Web3(window.web3.currentProvider);
+    // initialize web3
+    // let web3Provider= null;
+    // if(typeof web3 !== 'undefined') {
+    //   //reuse the provider of the Web3 object injected by Metamask
+    //   web3Provider = web3.currentProvider;
+    // } else {
+    //   //create a new provider and plug it directly into our local node
+    //   web3Provider = new Web3.providers.HttpProvider('http://localhost:7545');
+    // }
+    // web3 = new Web3(web3Provider);
+	</script>
+
+	<script>
+  		//change this to the ACTUAL contract address that you created on truffle migrate
+      //make sure that addresses are legit
+      const address = '0xFe5dAEf83938C3df450C1BA5e2AA8e951932f2A6';
+	    var ApprovalContract = new web3.eth.Contract(abi,address);
+
+      $('#contract-form').submit(function() {
+        event.preventDefault();
+        var fromAddress = $('#fromAddress').val();
+        var toAddress = $('#toAddress').val();
+        var amount = $('#amount').val();
+        if (web3.utils.isAddress(fromAddress) != true) {
+          alert('Δεν δώσατε σωστή διεύθυνση αποστολέα.');
+          return;
+        }
+        if (web3.utils.isAddress(toAddress) != true) {
+          alert('Δεν δώσατε σωστή διεύθυνση παραλήπτη.');
+          return;
+        }
+        // make sure the ETH is > 0
+        if (amount == 0){
+          alert('Πρέπει να στείλετε περισσότερα από 0 ETH');
+          return;
+        }
+      // all is good, let's call our contract deposit
+      ApprovalContract.methods.deposit(toAddress).send({from: fromAddress, gas: 100000, value:  web3.utils.toWei(amount, 'ether')},
+          function(error, result) {
+            if (error) {
+              console.log('error: ' + error);
+              $('#deposit-result').html('<b>Error: </b>' + error);
+            }
+            else {
+            $('#deposit-result').html('Success TX: <b>' + result + '</b>');
+            }
+          });
+      });
+
+      $('#get-balance-form').submit(function() {
+      event.preventDefault();
+      web3.eth.getBalance(contractAddress,
+          function(error, result) {
+              if (error) {
+              console.log('error: ' + error);
+              }
+              else {
+              console.log('balance: ' + result);
+              $('#the-balance').html('<b>Τρέχον υπόλοιπο: </b>' + web3.utils.fromWei(result));
+              }
+          });
+          });
+
+      $('#approve-form').submit(function() {
+      event.preventDefault();
+      ApprovalContract.methods.approve().send({from: '0x3d97B796549febC554830Daf6db04CeE21bDa6dd', gas: 100000},
+          function(error, result) {
+              if (error) {
+              console.log('error: ' + error);
+              }
+              else {
+              console.log('result: ' + JSON.stringify(result));
+              $('#approval-display').html('Transaction Approved. TX: <b>' + result + '</b>');
+              }
+          });
+      });
+        
+      $('#approver-form').submit(function() {
+        event.preventDefault();
+      ApprovalContract.methods.viewApprover().call(
+        function(error, result) {
+          if (error) {
+            console.log('error: ' + error);
+          }
+          else {
+            console.log('result: ' + JSON.stringify(result));
+            $('#approver-display').html('Approver Address: <b>' + result + '</b>');
+          }
+        });
+      });
+    </script>
+
+	
+	</body>
+</html>
