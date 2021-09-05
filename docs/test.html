@@ -50,21 +50,31 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
   -->
 	<script>
-      window.addEventListener('load', async () => { 
-        if (window.ethereum) {
-          window.web3 = new Web3(ethereum);
-          try {
-            await ethereum.enable();
-            web3.eth.sendTransaction({/* ... */});
-          } catch (error) {
-            // User denied account access...
-          }
-        }
-        else {
-          console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
-        }
+window.addEventListener('load', async () => { 
+  const ethereum = window.ethereum;
+  if(ethereum) {
+    ethereum.on("accountsChanged", function (accounts) {
+      console.log(accounts[0])
+    })
+  }
+
+// let web3;
+// if (window.ethereum) {
+//   web3 = new Web3(window.ethereum);
+//   try {
+//     await ethereum.enable();
+//     web3.eth.sendTransaction({/* ... */});
+//   } catch (error) {
+//     // User denied account access...
+//   }
+// }
+// else if (window.web3) {
+//   web3 = new Web3(window.web3.currentProvider);  
+// }
+// else {
+//   console.log('Non-Ethereum browser detected. You should consider trying MetaMask!');
+// }
       });
-      // web3 = new Web3(window.web3.currentProvider);  
     // initialize web3
     // let web3Provider= null;
     // if(typeof web3 !== 'undefined') {
